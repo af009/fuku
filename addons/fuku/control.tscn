@@ -1,6 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://bfluygdkrflia"]
+[gd_scene load_steps=6 format=3 uid="uid://bfluygdkrflia"]
 
 [ext_resource type="Script" path="res://addons/fuku/control.gd" id="1_py5ir"]
+[ext_resource type="FontFile" uid="uid://cmqnl5ac84yys" path="res://addons/fuku/NunitoSans_10pt-Medium.ttf" id="2_vi6yl"]
+[ext_resource type="FontFile" uid="uid://bvmtrd7knehi1" path="res://addons/fuku/NunitoSans_10pt-Black.ttf" id="3_7vv5j"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l0xa7"]
 bg_color = Color(0.0823529, 0.835294, 0.6, 1)
@@ -13,7 +15,7 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qsuog"]
-bg_color = Color(0.0823529, 0.835294, 0.6, 1)
+bg_color = Color(1, 1, 1, 1)
 corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
@@ -50,13 +52,15 @@ size_flags_vertical = 3
 
 [node name="CurrentModel" type="Label" parent="Header/HBoxContainer/HSplitContainer"]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("3_7vv5j")
 text = "Model:   "
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="EditModel" type="LineEdit" parent="Header/HBoxContainer/HSplitContainer"]
 layout_mode = 2
-text = "deepseek-coder:33b"
+theme_override_fonts/font = ExtResource("2_vi6yl")
+text = "llama2"
 
 [node name="HSplitContainer2" type="HSplitContainer" parent="Header/HBoxContainer"]
 layout_mode = 2
@@ -65,13 +69,15 @@ size_flags_vertical = 3
 
 [node name="CurrentContent" type="Label" parent="Header/HBoxContainer/HSplitContainer2"]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("3_7vv5j")
 text = "Content:"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="EditContent" type="LineEdit" parent="Header/HBoxContainer/HSplitContainer2"]
 layout_mode = 2
-text = "You are a expert Godot developer who prioritizes writing clean, straightforward code that is easy to understand and maintain. When providing explanations, keep them concise and focus on the essential points without unnecessary verbosity. Your goal is to convey complex concepts in a simple and digestible manner for Godot developers of all skill levels."
+theme_override_fonts/font = ExtResource("2_vi6yl")
+text = "You are a knowledgeable Godot 4.2 assistant, here to provide expert guidance on using the game engine effectively."
 
 [node name="Body" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -92,13 +98,17 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="Body/VBoxContainer"]
 layout_mode = 2
-text = "Model Answer:"
+theme_override_fonts/font = ExtResource("3_7vv5j")
+text = "Chat:"
 
 [node name="ModelAnswer" type="RichTextLabel" parent="Body/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 focus_mode = 2
+theme_override_fonts/normal_font = ExtResource("2_vi6yl")
+theme_override_fonts/bold_font = ExtResource("3_7vv5j")
 bbcode_enabled = true
+context_menu_enabled = true
 selection_enabled = true
 
 [node name="Footer" type="PanelContainer" parent="."]
@@ -121,13 +131,15 @@ layout_mode = 2
 [node name="Prompt" type="LineEdit" parent="Footer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_vi6yl")
 placeholder_text = "Ask something here..."
 
 [node name="AskButton" type="Button" parent="Footer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 9
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_colors/font_hover_color = Color(0.545098, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0.0823529, 0.835294, 0.6, 1)
+theme_override_fonts/font = ExtResource("3_7vv5j")
 theme_override_styles/normal = SubResource("StyleBoxFlat_l0xa7")
 theme_override_styles/hover = SubResource("StyleBoxFlat_qsuog")
 text = "Go!"

@@ -9,12 +9,11 @@ extends Control
 
 var url: String = "http://localhost:11434/v1/chat/completions"
 var headers = ["Content-Type: application/json"]
-# default model
-var model: String = "deepseek-coder:33b"
-# default content "instruction"
-var instruction: String = "You are a expert Godot developer who prioritizes writing clean, straightforward code that is easy to understand and maintain. When providing explanations, keep them concise and focus on the essential points without unnecessary verbosity. Your goal is to convey complex concepts in a simple and digestible manner for Godot developers of all skill levels."
-var messages = []
+var model: String = "llama2"
+var instruction: String = "You are a knowledgeable Godot assistant, here to provide expert guidance on using the game engine effectively."
+var conversation = []
 var request: HTTPRequest
+var messages = []
 
 func _ready():
 	edit_model.text = model
@@ -25,14 +24,13 @@ func _ready():
 	add_child(request)
 	request.connect("request_completed", _on_request_completed)
 	button.connect("pressed", self._on_button_pressed)
+	model_answer.bbcode_enabled = true
 
 func _on_model_changed(new_text: String):
 	model = new_text
-	#print("Model updated to: ", model)
 
 func _on_content_changed(new_text: String):
 	instruction = new_text
-	#print("Model updated to: ", instruction)
 
 func _on_button_pressed():
 	var text_length: int = user_prompt.text.length()
@@ -42,26 +40,20 @@ func _on_button_pressed():
 	var prompt = user_prompt.text
 	var current_model = edit_model.text
 	var current_instruction = edit_content.text
-	
-	dialogue_request(prompt, current_instruction , current_model )
+
+	# Add user prompt to conversation history
+	conversation.append({"role": "user", "content": prompt})
+
+	dialogue_request(prompt, current_instruction, current_model)
 	user_prompt.text = ""
-	model_answer.text = ""
+	model_answer.clear()  # Clear the RichTextLabel before updating
 
 func dialogue_request(user_dialogue, content, model):
-	messages.append({
-		"role": "system",
-		"content": content
-	})
-	messages.append({
-		"role": "user",
-		"content": user_dialogue
-	})
+	messages = []
+	messages.append({"role": "system", "content": content})
+	messages.append({"role": "user", "content": user_dialogue})
 
-	var body = JSON.new().stringify({
-		"messages": messages,
-		"model": model
-	})
-
+	var body = JSON.new().stringify({"messages": messages, "model": model})
 	var error = request.request(url, headers, HTTPClient.METHOD_POST, body)
 	if error != OK:
 		push_error("An error occurred while sending the request: %s" % error)
@@ -86,9 +78,16 @@ func _on_request_completed(result, response_code, headers, body):
 		return
 
 	var message = response["choices"][0]["message"]["content"]
-	model_answer.bbcode_text = "[i]" + message + "[/i]"
 
-	
-	
+	# Add model answer to conversation history
+	conversation.append({"role": edit_model.text, "content": message})
 
+	# Display the entire conversation history
+	for msg in conversation:
+		var role_text = msg["role"].capitalize()
+		var content_text = msg["content"]
 
+		if msg["role"] == "user":
+			model_answer.append_text("[color=#b6f7eb][b][bgcolor=BLACK]%s: [/bgcolor][/b]\n [p]%s[/p]\n\n[/color]" % [role_text, content_text])
+		else:
+			model_answer.append_text("[color=WHITE][b][bgcolor=BLACK]%s: [/bgcolor][/b]\n [p]%s[/p]\n\n" % [role_text, content_text])
