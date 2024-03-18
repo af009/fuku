@@ -88,6 +88,6 @@ func _on_request_completed(result, response_code, headers, body):
 		var content_text = msg["content"]
 
 		if msg["role"] == "user":
-			model_answer.append_text("[color=#b6f7eb][b][bgcolor=BLACK]%s: [/bgcolor][/b]\n [p]%s[/p]\n\n[/color]" % [role_text, content_text])
+			model_answer.append_text("[color=#b6f7eb][b][bgcolor=BLACK]%s: [/bgcolor][/b][/color]\n [p]%s[/p]\n\n" % [role_text, content_text])
 		else:
-			model_answer.append_text("[color=WHITE][b][bgcolor=BLACK]%s: [/bgcolor][/b]\n [p]%s[/p]\n\n" % [role_text, content_text])
+			model_answer.append_text("[color=WHITE][b][bgcolor=BLACK]%s: [/bgcolor][/b][/color]\n [p]%s[/p]\n" % [role_text, content_text])
