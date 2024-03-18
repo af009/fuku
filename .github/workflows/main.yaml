@@ -1,0 +1,53 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      setVersion:
+        description: 'Set a version'
+        required: true
+        default: '1.0.0'
+      releaseBody:
+        description: 'Describe this release'
+        required: true
+
+jobs:
+
+  publish:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set Version
+      id: set_version
+      run: |
+        echo "NEW_VERSION=v${{ github.event.inputs.setVersion }}" >> $GITHUB_OUTPUT
+      
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.set_version.outputs.NEW_VERSION }}-${{ github.run_number }}
+        release_name: Release ${{ steps.set_version.outputs.NEW_VERSION }}
+        body: ${{ github.event.inputs.releaseBody }}
+        draft: false
+        prerelease: false
+        
+    - name: Zip files
+      run: zip -r fuku.zip ./addons
+      
+    - name: Upload Release Asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./fuku.zip
+        asset_name: fuku.zip
+        asset_content_type: application/zip
