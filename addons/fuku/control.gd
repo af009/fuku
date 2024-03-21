@@ -46,7 +46,7 @@ func _on_button_pressed():
 
 	dialogue_request(prompt, current_instruction, current_model)
 	user_prompt.text = ""
-	model_answer.clear()  # Clear the RichTextLabel before updating
+
 
 func dialogue_request(user_dialogue, content, model):
 	messages = []
@@ -56,25 +56,23 @@ func dialogue_request(user_dialogue, content, model):
 	var body = JSON.new().stringify({"messages": messages, "model": model})
 	var error = request.request(url, headers, HTTPClient.METHOD_POST, body)
 	if error != OK:
-		push_error("An error occurred while sending the request: %s" % error)
+		display_error_message("An error occurred while sending the request: %s" % error)
 
 func _on_request_completed(result, response_code, headers, body):
 	var json = JSON.new()
 	var error = json.parse(body.get_string_from_utf8())
 	if error != OK:
-		push_error("An error occurred while parsing the response: %s" % error)
-		model_answer.bbcode_text = "An error occurred while parsing the response."
+		display_error_message("An error occurred while parsing the response. \n*Make sure the model [b]'%s' is running[/b] in the background." % model)
 		return
 
 	var response = json.get_data()
+
 	if response.has("error"):
-		push_error("API error: %s" % response["error"]["message"])
-		model_answer.bbcode_text = "An error occurred: %s" % response["error"]["message"]
+		display_error_message("API error: %s" % response["error"]["message"])
 		return
 
 	if !response.has("choices") or response["choices"].size() == 0:
-		push_error("Invalid response format")
-		model_answer.bbcode_text = "An error occurred: Invalid response format."
+		display_error_message("Invalid response format")
 		return
 
 	var message = response["choices"][0]["message"]["content"]
@@ -83,6 +81,7 @@ func _on_request_completed(result, response_code, headers, body):
 	conversation.append({"role": edit_model.text, "content": message})
 
 	# Display the entire conversation history
+	model_answer.clear() # Clear the RichTextLabel initially
 	for msg in conversation:
 		var role_text = msg["role"].capitalize()
 		var content_text = msg["content"]
@@ -90,4 +89,8 @@ func _on_request_completed(result, response_code, headers, body):
 		if msg["role"] == "user":
 			model_answer.append_text("[color=#b6f7eb][b][bgcolor=BLACK]%s: [/bgcolor][/b][/color]\n [p]%s[/p]\n\n" % [role_text, content_text])
 		else:
-			model_answer.append_text("[color=WHITE][b][bgcolor=BLACK]%s: [/bgcolor][/b][/color]\n [p]%s[/p]\n" % [role_text, content_text])
+			model_answer.append_text("[color=WHITE][b][bgcolor=BLACK]%s: [/bgcolor][/b][/color]\n [p]%s[/p]\n\n" % [role_text, content_text])
+
+func display_error_message(error_message: String):
+	push_error(error_message)
+	model_answer.bbcode_text = "[color=#FF7B7B]Error: %s[/color]" % error_message
