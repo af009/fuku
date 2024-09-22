@@ -1,24 +1,22 @@
 @tool
 extends EditorPlugin
 
+var dock: Control
 
-# A class member to hold the dock during the plugin life cycle.
-var dock
+# To move the tab to the bottom panel, change this variable to true and restart the plugin
+const BOTTOM_PANEL: bool = false
 
-
-func _enter_tree():
-	# Initialization of the plugin goes here.
-	# Load the dock scene and instantiate it.
+func _enter_tree() -> void:
 	dock = preload("res://addons/fuku/control.tscn").instantiate()
-
-	# Add the loaded scene to the docks.
-	add_control_to_dock(DOCK_SLOT_RIGHT_UL, dock)
 	
-	 
+	if BOTTOM_PANEL:
+		add_control_to_bottom_panel(dock, "Fuku")
+	else:
+		add_control_to_dock(DOCK_SLOT_RIGHT_UL, dock)
 
-func _exit_tree():
-	# Clean-up of the plugin goes here.
-	# Remove the dock.
-	remove_control_from_docks(dock)
-	# Erase the control from the memory.
-	dock.free()
+func _exit_tree() -> void:
+	if is_instance_valid(dock):
+		remove_control_from_bottom_panel(dock)
+		remove_control_from_docks(dock)
+		dock.queue_free()
+	dock = null
