@@ -23,7 +23,7 @@ Before using Fuku, make sure you have installed and running [Ollama](https://oll
 
 To install the plugin in your Godot project, follow these simple steps:
 
-1. [Download⬇](https://github.com/af009/fuku/releases/download/v1.0.3-6/fuku.zip) the `addons/` folder.
+1. [Download⬇](https://github.com/af009/fuku/releases/download/v1.0.4-7/fuku.zip) the `addons/` folder.
 2. Move the `addons/` folder to your Godot project directory.
 3. In the Godot editor, navigate to `Project` > `Project Settings` > `Plugins`.
 4. Click the "Enable" button.
