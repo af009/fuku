@@ -4,6 +4,14 @@
 [ext_resource type="FontFile" uid="uid://cmqnl5ac84yys" path="res://addons/fuku/NunitoSans_10pt-Medium.ttf" id="2_vi6yl"]
 [ext_resource type="FontFile" uid="uid://bvmtrd7knehi1" path="res://addons/fuku/NunitoSans_10pt-Black.ttf" id="3_7vv5j"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qsuog"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+shadow_color = Color(0, 0, 0, 1)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l0xa7"]
 bg_color = Color(0.0823529, 0.835294, 0.6, 1)
 border_width_left = 15
@@ -14,14 +22,6 @@ corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qsuog"]
-bg_color = Color(1, 1, 1, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-shadow_color = Color(0, 0, 0, 1)
-
 [node name="Fuku" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -31,115 +31,136 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_py5ir")
 
-[node name="Header" type="PanelContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = -1
+anchors_preset = 15
 anchor_right = 1.0
-anchor_bottom = 0.111
-offset_left = 8.0
-offset_top = 8.0
-offset_right = -8.0
-offset_bottom = 2.07199
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
 
-[node name="HBoxContainer" type="VBoxContainer" parent="Header"]
+[node name="HeaderCollapse" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_7vv5j")
+text = "▼ Settings"
+alignment = 0
+
+[node name="Header" type="PanelContainer" parent="VBoxContainer"]
 layout_mode = 2
 
-[node name="HSplitContainer" type="HSplitContainer" parent="Header/HBoxContainer"]
+[node name="HBoxContainer" type="VBoxContainer" parent="VBoxContainer/Header"]
+layout_mode = 2
+
+[node name="HSplitContainer" type="HSplitContainer" parent="VBoxContainer/Header/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="CurrentModel" type="Label" parent="Header/HBoxContainer/HSplitContainer"]
+[node name="CurrentModel" type="Label" parent="VBoxContainer/Header/HBoxContainer/HSplitContainer"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_7vv5j")
 text = "Model:   "
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="EditModel" type="LineEdit" parent="Header/HBoxContainer/HSplitContainer"]
+[node name="EditModel" type="OptionButton" parent="VBoxContainer/Header/HBoxContainer/HSplitContainer"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_vi6yl")
-text = "llama2"
+selected = 0
+item_count = 2
+popup/item_0/text = "qwen2.5-coder:7b"
+popup/item_1/text = "llama3.1:latest"
+popup/item_1/id = 1
 
-[node name="HSplitContainer2" type="HSplitContainer" parent="Header/HBoxContainer"]
+[node name="HSplitContainer2" type="HSplitContainer" parent="VBoxContainer/Header/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="CurrentContent" type="Label" parent="Header/HBoxContainer/HSplitContainer2"]
+[node name="CurrentContent" type="Label" parent="VBoxContainer/Header/HBoxContainer/HSplitContainer2"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_7vv5j")
 text = "Content:"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="EditContent" type="LineEdit" parent="Header/HBoxContainer/HSplitContainer2"]
+[node name="EditContent" type="LineEdit" parent="VBoxContainer/Header/HBoxContainer/HSplitContainer2"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_vi6yl")
-text = "You are a knowledgeable Godot assistant, here to provide expert guidance on using the game engine effectively."
+text = "
+You are an expert GDScript developer and Godot 4.3 specialist. Provide precise and concise responses that follow these guidelines:
 
-[node name="Body" type="PanelContainer" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.007
-anchor_top = 0.111
-anchor_right = 1.0
-anchor_bottom = 0.938
-offset_left = -0.0640002
-offset_top = 0.0719942
-offset_right = -8.0
-offset_bottom = 0.175985
-grow_horizontal = 2
-grow_vertical = 2
+1. Best Practices:
+   - Use Godot's built-in features and patterns.
+   - Follow the GDScript style guide (PascalCase for classes, snake_case for functions/variables).
+   - Prefer typed variables and functions for clarity and performance.
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Body"]
+2. Performance:
+   - Recommend efficient algorithms and data structures.
+   - Use signals over polling, and limit _physics_process to when it's necessary.
+   - Suggest optimizations, especially for mobile/web platforms.
+
+3. Code Formatting:
+   - Format with tabs and limit line length to 100 characters.
+   - Use descriptive variable and function names.
+
+4. Godot 4.3 Features:
+   - Suggest relevant nodes, scene structures, and new features in Godot 4.3.
+   - Favor Godot's built-in methods over custom solutions.
+
+5. Error Handling and Debugging:
+   - Include error checking and recommend Godot-specific debugging methods.
+
+6. Scalability and Maintainability:
+   - Offer scalable solutions, encourage modular design, and separation of concerns.
+
+7. Documentation:
+   - Use brief comments for complex logic and recommend Godot's documentation tools (e.g., ##).
+
+Relate responses to Godot's implementation and provide code examples ready for use in the script editor.
+"
+
+[node name="Body" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Body"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Body/VBoxContainer"]
+[node name="Label" type="Label" parent="VBoxContainer/Body/VBoxContainer"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_7vv5j")
 text = "Chat:"
 
-[node name="ModelAnswer" type="RichTextLabel" parent="Body/VBoxContainer"]
+[node name="ModelAnswer" type="RichTextLabel" parent="VBoxContainer/Body/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 focus_mode = 2
 theme_override_fonts/normal_font = ExtResource("2_vi6yl")
 theme_override_fonts/bold_font = ExtResource("3_7vv5j")
 bbcode_enabled = true
+scroll_following = true
 context_menu_enabled = true
 selection_enabled = true
 
-[node name="Footer" type="PanelContainer" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.007
-anchor_top = 0.94
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -0.0640002
-offset_top = -0.120037
-offset_right = -8.0
-offset_bottom = -8.0
-grow_horizontal = 2
-grow_vertical = 0
-
-[node name="HBoxContainer" type="HBoxContainer" parent="Footer"]
+[node name="Footer" type="PanelContainer" parent="VBoxContainer"]
 layout_mode = 2
 
-[node name="Prompt" type="LineEdit" parent="Footer/HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/Footer"]
+layout_mode = 2
+
+[node name="Prompt" type="LineEdit" parent="VBoxContainer/Footer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_fonts/font = ExtResource("2_vi6yl")
 placeholder_text = "Ask something here..."
 
-[node name="AskButton" type="Button" parent="Footer/HBoxContainer"]
+[node name="AskButton" type="Button" parent="VBoxContainer/Footer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 9
-theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_hover_color = Color(0.0823529, 0.835294, 0.6, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("3_7vv5j")
-theme_override_styles/normal = SubResource("StyleBoxFlat_l0xa7")
 theme_override_styles/hover = SubResource("StyleBoxFlat_qsuog")
+theme_override_styles/normal = SubResource("StyleBoxFlat_l0xa7")
 text = "Go!"

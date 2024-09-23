@@ -32,16 +32,29 @@ You should now see the plugin listed on the right side next to the history tab.
 
 ## Usage
 
-By default, Fuku is pre-configured to use the `llama2` model with a default content (instruction). However, you can easily customize it to use any installed model or/and provide your own instructions.
+Fuku comes pre-configured with default content (instructions), but you can easily customize it to use any installed model and provide your own instructions.
 
-To interact with Fuku, follow these steps:
+### Interacting with Fuku
 
-1. Select the Fuku tab in the editor interface.
-2. (Optional) Set a different model by modifying the "Model" field.
-3. (Optional) Customize the content instruction for the model.
+1. Open the Fuku tab in the Godot editor interface.
+2. Select a Model:
+
+   ![Select Model](docs/select_model.png)
+3. (Optional) Customize the content instructions for the model.
 4. Start chatting!
 
-<img src='docs/fuku.png' height="700px">
+   ![Full Example](docs/full_example.png)
+
+### Customizing Fuku's Location (Optional)
+
+By default, the Fuku tab is located in the Dock panel next to the History tab. To move it to the bottom panel:
+
+1. Open `addons/fuku/fuku.gd`.
+2. Set the `USE_BOTTOM_PANEL` constant to `true`:
+   ` const USE_BOTTOM_PANEL := true`
+3. Restart the Godot editor to apply changes.
+
+ ![Bottom Panel](docs/bottom_panel.png)
 
 ## License
 
