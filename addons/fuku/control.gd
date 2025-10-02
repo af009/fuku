@@ -1,259 +1,475 @@
 @tool
 extends Control
 
-const BASE_URL = "http://127.0.0.1:11434"
-const API_ENDPOINTS = {
-	"chat_completions": "/v1/chat/completions",
-	"list_models": "/api/tags"
-}
+# Loading animation patterns
+const LOADING_DOT_PATTERNS: Array[String] = ["●  ", "●● ", "●●●", " ●●", "  ●"]
 
-@onready var header_collapse_button: Button = $VBoxContainer/HeaderCollapse
-@onready var header: PanelContainer = $VBoxContainer/Header
-@onready var edit_model: OptionButton = $VBoxContainer/Header/HBoxContainer/HSplitContainer/EditModel
-@onready var edit_content: LineEdit = $VBoxContainer/Header/HBoxContainer/HSplitContainer2/EditContent
-@onready var user_prompt: LineEdit = $VBoxContainer/Footer/HBoxContainer/Prompt
-@onready var model_answer: RichTextLabel = $VBoxContainer/Body/VBoxContainer/ModelAnswer
-@onready var button: Button = $VBoxContainer/Footer/HBoxContainer/AskButton
-@onready var retry_button: Button = $VBoxContainer/Header/HBoxContainer/RetryButton
+# Core managers
+var chat_manager: ChatManager
+var backend_manager: BackendManager
+var config_manager: ConfigManager
 
-var headers = ["Content-Type: application/json"]
-var model: String = ""
-var instruction: String = """
-You are an expert GDScript developer and Godot 4.3 specialist. Provide precise and concise responses that follow these guidelines:
+# loading
+var is_loading: bool = false
+var spinner_tween: Tween = null
+var pattern_timer: Timer = null
+var current_pattern_index: int = 0
 
-1. Best Practices:
-   - Use Godot's built-in features and patterns.
-   - Follow the GDScript style guide (PascalCase for classes, snake_case for functions/variables).
-   - Prefer typed variables and functions for clarity and performance.
-
-2. Performance:
-   - Recommend efficient algorithms and data structures.
-   - Use signals over polling, and limit _physics_process to when it's necessary.
-   - Suggest optimizations, especially for mobile platforms.
-
-3. Code Formatting:
-   - Format with tabs and limit line length to 100 characters.
-   - Use descriptive variable and function names.
-
-4. Godot 4.3 Features:
-   - Suggest relevant nodes, scene structures, and new features in Godot 4.3.
-   - Favor Godot's built-in methods over custom solutions.
-
-5. Error Handling and Debugging:
-   - Include error checking and recommend Godot-specific debugging methods.
-
-6. Scalability and Maintainability:
-   - Offer scalable solutions, encourage modular design, and separation of concerns.
-
-7. Documentation:
-   - Use brief comments for complex logic and recommend Godot's documentation tools (e.g., ##).
-
-Relate responses to Godot's implementation and provide code examples ready for use in the script editor.
-"""
-
-var conversation = []
+# HTTP request node
 var request: HTTPRequest
+
+# UI reference (will be created from scene)
+@onready var chat_ui: Control = self
+
+# Current state
+var current_backend_type: BackendManager.BackendType = BackendManager.BackendType.OLLAMA
 
 func _ready() -> void:
 	if not is_node_ready():
 		await ready
 
-	_setup_ui()
-	_setup_request()
-	fetch_running_models()
+	_initialize_managers()
+	_setup_ui_connections()
+	_load_configuration()
 
-func _setup_ui() -> void:
-	edit_model.clear()
-	edit_model.add_item("Fetching models...")
-	edit_model.disabled = true
-	edit_content.text = instruction
-	
-	edit_model.item_selected.connect(_on_model_selected)
-	edit_content.text_changed.connect(_on_content_changed)
-	button.pressed.connect(_on_button_pressed)
-	user_prompt.text_submitted.connect(_on_enter_pressed)
-	header_collapse_button.pressed.connect(_on_header_collapse_pressed)
-	retry_button.pressed.connect(_on_retry_button_pressed)
-	
-	model_answer.bbcode_enabled = true
-	model_answer.scroll_following = true
-	model_answer.selection_enabled = true
-	
-	_update_header_state(true) 
-	retry_button.hide()
-
-func _setup_request() -> void:
+# Initialize core managers
+func _initialize_managers() -> void:
+	# Create HTTP request node
 	request = HTTPRequest.new()
 	add_child(request)
-	request.request_completed.connect(_on_request_completed)
 
-func fetch_running_models() -> void:
-	_make_request(API_ENDPOINTS.list_models, HTTPClient.METHOD_GET)
+	# Initialize managers
+	chat_manager = ChatManager.new()
+	backend_manager = BackendManager.new(request)
+	config_manager = ConfigManager.new()
 
-func _make_request(endpoint: String, method: int, body: String = "") -> void:
-	var url = BASE_URL + endpoint
-	var error: Error = request.request(url, headers, method, body)
-	
-	if error != OK:
-		display_error_message("Unable to make request to: " + url)
-		_show_retry_button()
+	# Connect backend manager signals
+	backend_manager.models_fetched.connect(_on_models_fetched)
+	backend_manager.response_received.connect(_on_response_received)
+	backend_manager.error_occurred.connect(_on_error_occurred)
+
+	# Set default system instruction
+	chat_manager.set_system_instruction(SettingsPanel.DEFAULT_SYSTEM_INSTRUCTION)
+
+# Setup UI signal connections
+func _setup_ui_connections() -> void:
+	# Get UI components
+	var chat_display = $VBoxContainer/Body/VBoxContainer/ModelAnswer
+	var user_prompt = $VBoxContainer/Footer/HBoxContainer/Prompt
+	var send_button = $VBoxContainer/Footer/HBoxContainer/AskButton
+	var clear_chat_button = $VBoxContainer/Footer/HBoxContainer/ClearChatButton
+	var header_collapse_button = $VBoxContainer/HeaderCollapse
+	var loading_container = $VBoxContainer/Body/VBoxContainer/ChatHeader/LoadingContainer
+
+	# Setup chat display
+	if chat_display:
+		chat_display.bbcode_enabled = true
+		chat_display.scroll_following = true
+		chat_display.selection_enabled = true
+		chat_display.add_theme_color_override("default_color", SettingsPanel.COLOR_DEFAULT_TEXT)
+		chat_display.add_theme_color_override("selection_color", SettingsPanel.COLOR_SELECTION)
+		MessageFormatter.show_welcome_message(chat_display)
+
+	# Connect settings panel UI elements directly
+	var provider_option = $VBoxContainer/Header/HBoxContainer/ProviderOption
+	var api_key_input = $VBoxContainer/Header/HBoxContainer/APIKeyContainer/APIKeyInput
+	var save_key_checkbox = $VBoxContainer/Header/HBoxContainer/APIKeyContainer/SaveKeyCheckbox
+	var model_option = $VBoxContainer/Header/HBoxContainer/EditModel
+	var instruction_input = $VBoxContainer/Header/HBoxContainer/EditContent
+	var connect_button = $VBoxContainer/Body/VBoxContainer/ChatHeader/ConnectButton
+	var retry_button = $VBoxContainer/Body/VBoxContainer/ChatHeader/RetryButton
+	var load_env_button = $VBoxContainer/Header/HBoxContainer/ButtonContainer/LoadEnvButton
+
+	# Initialize model dropdown
+	if model_option:
+		model_option.clear()
+		model_option.add_item("Click Connect to fetch models")
+		model_option.disabled = true
+
+	# Show connect button initially, hide others
+	if connect_button:
+		connect_button.show()
+	if retry_button:
+		retry_button.hide()
+	if load_env_button:
+		load_env_button.hide()
+
+	# Set button icons from editor theme
+	if send_button and Engine.is_editor_hint():
+		var editor_theme = EditorInterface.get_editor_theme()
+		if editor_theme:
+			send_button.icon = editor_theme.get_icon("Play", "EditorIcons")
+	if clear_chat_button and Engine.is_editor_hint():
+		var editor_theme = EditorInterface.get_editor_theme()
+		if editor_theme:
+			clear_chat_button.icon = editor_theme.get_icon("Remove", "EditorIcons")
+
+	if provider_option:
+		provider_option.item_selected.connect(_on_provider_changed)
+	if api_key_input:
+		api_key_input.text_changed.connect(_on_api_key_changed)
+	if model_option:
+		model_option.item_selected.connect(_on_model_selected)
+	if instruction_input:
+		# TextEdit uses text_changed signal (same as LineEdit)
+		instruction_input.text_changed.connect(_on_system_instruction_changed)
+	if connect_button:
+		connect_button.pressed.connect(_on_connect_requested)
+	if retry_button:
+		retry_button.pressed.connect(_on_retry_requested)
+	if load_env_button:
+		load_env_button.pressed.connect(_on_reload_env_requested)
+
+	# Connect user input signals
+	if user_prompt:
+		user_prompt.text_submitted.connect(_on_text_submitted)
+	if send_button:
+		send_button.pressed.connect(_on_send_pressed)
+	if clear_chat_button:
+		clear_chat_button.pressed.connect(_on_clear_chat_pressed)
+	if header_collapse_button:
+		header_collapse_button.pressed.connect(_on_header_collapse_pressed)
+
+	# Hide loading initially
+	if loading_container:
+		loading_container.visible = false
+
+	# Setup header state
+	_update_header_state(true)
+
+# Load configuration and initial state
+func _load_configuration() -> void:
+	config_manager.load_api_keys()
+
+	# Set backend to Ollama by default
+	_switch_backend(BackendManager.BackendType.OLLAMA)
+
+	# Load API key for current backend
+	_update_backend_api_key()
+
+
+# Switch to different backend
+func _switch_backend(backend_type: BackendManager.BackendType) -> void:
+	current_backend_type = backend_type
+	backend_manager.set_backend(backend_type)
+	config_manager.set_current_backend(_get_backend_name(backend_type))
+
+	# Update API key for new backend
+	_update_backend_api_key()
+
+# Update backend with API key from config
+func _update_backend_api_key() -> void:
+	var backend_name = _get_backend_name(current_backend_type)
+	var api_key = config_manager.get_api_key(backend_name)
+	backend_manager.update_api_key(api_key)
+
+	# Update UI
+	var api_key_input = $VBoxContainer/Header/HBoxContainer/APIKeyContainer/APIKeyInput
+	var save_key_checkbox = $VBoxContainer/Header/HBoxContainer/APIKeyContainer/SaveKeyCheckbox
+
+	if api_key_input:
+		if api_key.is_empty():
+			api_key_input.text = ""
+			var placeholder = ""
+			if backend_name == "ollama" or backend_name == "docker":
+				placeholder = SettingsPanel.PLACEHOLDER_NO_KEY_NEEDED
+			else:
+				placeholder = SettingsPanel.PLACEHOLDER_ENTER_KEY_TEMPLATE % backend_name.capitalize()
+			api_key_input.placeholder_text = placeholder
+			# Uncheck save checkbox when no key is loaded
+			if save_key_checkbox:
+				save_key_checkbox.button_pressed = false
+		else:
+			api_key_input.text = SettingsPanel.MASKED_API_KEY_DISPLAY
+			# Check save checkbox since we loaded a saved key
+			if save_key_checkbox:
+				save_key_checkbox.button_pressed = true
+
+# Get backend name from type
+func _get_backend_name(backend_type: BackendManager.BackendType) -> String:
+	match backend_type:
+		BackendManager.BackendType.OLLAMA:
+			return "ollama"
+		BackendManager.BackendType.OPENAI:
+			return "openai"
+		BackendManager.BackendType.CLAUDE:
+			return "claude"
+		BackendManager.BackendType.DOCKER:
+			return "docker"
+		BackendManager.BackendType.GEMINI:
+			return "gemini"
+	return "ollama"
+
+# Signal handlers
+func _on_provider_changed(index: int) -> void:
+	_switch_backend(index as BackendManager.BackendType)
+	backend_manager.fetch_models()
+
+func _on_api_key_changed(new_text: String) -> void:
+	if new_text == SettingsPanel.MASKED_API_KEY_DISPLAY:
+		return # Don't update if it's the masked display
+
+	var backend_name = _get_backend_name(current_backend_type)
+	var save_key_checkbox = $VBoxContainer/Header/HBoxContainer/APIKeyContainer/SaveKeyCheckbox
+
+	# Only save to .env if checkbox is checked
+	if save_key_checkbox and save_key_checkbox.button_pressed:
+		var success = config_manager.save_api_key(backend_name, new_text)
+		if success:
+			_show_api_key_saved_message()
+
+	# Always update the backend with the key (for current session)
+	backend_manager.update_api_key(new_text)
 
 func _on_model_selected(index: int) -> void:
-	model = edit_model.get_item_text(index)
+	var model_option = $VBoxContainer/Header/HBoxContainer/EditModel
+	if model_option:
+		var model_name = model_option.get_item_text(index)
+		backend_manager.set_model(model_name)
 
-func _on_content_changed(new_text: String) -> void:
-	instruction = new_text
+func _on_system_instruction_changed() -> void:
+	var instruction_input = $VBoxContainer/Header/HBoxContainer/EditContent
+	if instruction_input:
+		chat_manager.set_system_instruction(instruction_input.text)
 
-func _on_button_pressed() -> void:
-	send_request()
+func _on_connect_requested() -> void:
+	backend_manager.fetch_models()
+	_hide_connect_button()
 
-func _on_enter_pressed(_text: String) -> void:
-	send_request()
+func _on_retry_requested() -> void:
+	backend_manager.fetch_models()
+
+func _on_reload_env_requested() -> void:
+	config_manager.load_api_keys()
+	_update_backend_api_key()
+
+	var chat_display = $VBoxContainer/Body/VBoxContainer/ModelAnswer
+	if chat_display:
+		MessageFormatter.append_success(chat_display, "Reloaded API keys from .env file")
+
+func _on_text_submitted(_text: String) -> void:
+	_send_message()
+
+func _on_send_pressed() -> void:
+	_send_message()
+
+func _on_clear_chat_pressed() -> void:
+	# Clear conversation history
+	chat_manager.clear_conversation()
+
+	# Clear chat display (don't re-show welcome message)
+	var chat_display = $VBoxContainer/Body/VBoxContainer/ModelAnswer
+	if chat_display:
+		chat_display.clear()
 
 func _on_header_collapse_pressed() -> void:
-	_update_header_state(!header.visible)
+	var settings_panel = $VBoxContainer/Header
+	_update_header_state(!settings_panel.visible)
 
 func _update_header_state(is_expanded: bool) -> void:
-	header.visible = is_expanded
+	var settings_panel = $VBoxContainer/Header
+	var header_collapse_button = $VBoxContainer/HeaderCollapse
+
+	settings_panel.visible = is_expanded
 	header_collapse_button.text = "▼ Settings" if is_expanded else "▶ Settings"
 
-func _on_retry_button_pressed() -> void:
-	retry_button.hide()
-	fetch_running_models()
+# Send message to AI
+func _send_message() -> void:
+	var user_prompt = $VBoxContainer/Footer/HBoxContainer/Prompt
+	var model_option = $VBoxContainer/Header/HBoxContainer/EditModel
 
-func _show_retry_button() -> void:
-	retry_button.show()
-	retry_button.text = "Retry connecting to Ollama"
-
-func send_request() -> void:
 	var prompt = user_prompt.text.strip_edges()
 	if prompt.length() < 5:
-		display_error_message("Your prompt is too short. Please provide more details for a better response.")
+		_display_error("Prompt too short.")
 		return
 
-	if edit_model.disabled:
-		display_error_message("No models available. Please ensure Ollama is running and try connecting again.")
+	if model_option and model_option.disabled:
+		_display_error("No models available for selected provider.")
 		_show_retry_button()
 		return
 
-	conversation.append({"role": "user", "content": prompt})
-	display_user_message(prompt)
-	
-	var current_model = edit_model.get_item_text(edit_model.selected)
-	var current_instruction = edit_content.text
+	# Clear welcome message on first interaction
+	var chat_display = $VBoxContainer/Body/VBoxContainer/ModelAnswer
+	if chat_display and chat_manager.get_conversation().is_empty():
+		chat_display.clear()
 
-	dialogue_request(prompt, current_instruction, current_model)
+	# Add user message to conversation
+	chat_manager.add_message("user", prompt)
+	_display_user_message(prompt)
+
+	# Clear input
 	user_prompt.text = ""
 
-func dialogue_request(user_dialogue: String, content: String, model: String) -> void:
-	var messages: Array[Dictionary] = [
-		{"role": "system", "content": content},
-		{"role": "user", "content": user_dialogue}
-	]
-	
-	var body: String = JSON.stringify({"messages": messages, "model": model})
-	_make_request(API_ENDPOINTS.chat_completions, HTTPClient.METHOD_POST, body)
+	# Show loading
+	_show_loading("Thinking...")
 
-func _on_request_completed(_result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
-	if response_code != 200:
-		display_error_message("Unable to connect to the Ollama server. Please ensure it's running and try again.")
-		_show_retry_button()
+	# Send request
+	var model = backend_manager.get_model()
+	var system_instruction = chat_manager.get_system_instruction()
+	var conversation = chat_manager.get_conversation()
+
+	backend_manager.send_chat_request(conversation, model, system_instruction)
+
+# Backend response handlers
+func _on_models_fetched(models: Array) -> void:
+	var model_option = $VBoxContainer/Header/HBoxContainer/EditModel
+	if model_option:
+		model_option.clear()
+
+		if models.is_empty():
+			model_option.add_item("No models available")
+			model_option.disabled = true
+			_show_retry_button()
+			return
+
+		for model_name in models:
+			model_option.add_item(model_name)
+
+		model_option.selected = 0
+		model_option.disabled = false
+		_hide_retry_button()
+		_hide_connect_button()
+
+	# Set first model as default
+	if not models.is_empty():
+		backend_manager.set_model(models[0])
+
+func _on_response_received(message: String) -> void:
+	_hide_loading()
+
+	# Add to conversation
+	chat_manager.add_message("assistant", message)
+
+	# Display message
+	var model = backend_manager.get_model()
+	_display_model_message(message, model)
+
+func _on_error_occurred(error_message: String) -> void:
+	_hide_loading()
+	_display_error(error_message)
+	_show_retry_button()
+
+# UI display methods
+func _display_user_message(message: String) -> void:
+	var chat_display = $VBoxContainer/Body/VBoxContainer/ModelAnswer
+	if chat_display:
+		MessageFormatter.append_message(chat_display, "👤 You", message, "#74c0fc")
+
+func _display_model_message(message: String, model_name: String) -> void:
+	var chat_display = $VBoxContainer/Body/VBoxContainer/ModelAnswer
+	if chat_display:
+		var icon = MessageFormatter.get_model_icon(model_name)
+		var cleaned_message = MarkdownParser.remove_thinking_tags(message)
+		MessageFormatter.append_message(chat_display, icon + " " + model_name, cleaned_message, "#a6e3a1")
+
+func _display_error(error_message: String) -> void:
+	var chat_display = $VBoxContainer/Body/VBoxContainer/ModelAnswer
+	if chat_display:
+		# Clear welcome message before showing error
+		if chat_manager.get_conversation().is_empty():
+			chat_display.clear()
+
+		MessageFormatter.append_error(chat_display, error_message)
+
+func _show_loading(text: String = "Processing...") -> void:
+	var loading_container = $VBoxContainer/Body/VBoxContainer/ChatHeader/LoadingContainer
+	var loading_text = $VBoxContainer/Body/VBoxContainer/ChatHeader/LoadingContainer/LoadingText
+	var send_button = $VBoxContainer/Footer/HBoxContainer/AskButton
+
+	if loading_container:
+		loading_container.visible = true
+	if loading_text:
+		loading_text.text = text
+	if send_button:
+		send_button.disabled = true
+
+	_start_spinner_animation()
+
+func _hide_loading() -> void:
+	is_loading = false
+	var loading_container = $VBoxContainer/Body/VBoxContainer/ChatHeader/LoadingContainer
+	var send_button = $VBoxContainer/Footer/HBoxContainer/AskButton
+	var loading_spinner = $VBoxContainer/Body/VBoxContainer/ChatHeader/LoadingContainer/LoadingSpinner
+
+	if loading_container:
+		loading_container.visible = false
+	if send_button:
+		send_button.disabled = false
+
+	# Stop pattern timer
+	if pattern_timer:
+		pattern_timer.stop()
+
+	# Clean up tween
+	if spinner_tween and spinner_tween.is_valid():
+		spinner_tween.kill()
+		spinner_tween = null
+
+	# Reset spinner appearance
+	if loading_spinner:
+		loading_spinner.modulate.a = 1.0
+
+func _start_spinner_animation() -> void:
+	is_loading = true
+	var loading_spinner = $VBoxContainer/Body/VBoxContainer/ChatHeader/LoadingContainer/LoadingSpinner
+
+	if not loading_spinner:
 		return
 
-	var json := JSON.new()
-	var error: Error = json.parse(body.get_string_from_utf8())
-	
-	if error != OK:
-		display_error_message("We encountered an issue parsing the server response. Error code: %d. Please try again." % error)
-		return
-	
-	var response: Variant = json.data
-	if response is Dictionary:
-		if response.has("models"):
-			handle_model_list_response(response.get("models", []))
-		elif response.has("choices"):
-			handle_chat_completion_response(response)
-		else:
-			display_error_message("Unexpected response format. Response: %s" % JSON.stringify(response))
-	else:
-		display_error_message("Unexpected response type. Expected Dictionary, got: %s. Response: %s" % [typeof(response), JSON.stringify(response)])
+	# Kill existing tween if any
+	if spinner_tween and spinner_tween.is_valid():
+		spinner_tween.kill()
 
-func handle_model_list_response(models: Array) -> void:
-	if models.is_empty():
-		display_error_message("No models found. Please ensure at least one model is available.")
-		_show_retry_button()
+	# Create smooth pulsing animation using Tween
+	spinner_tween = create_tween().set_loops()
+	spinner_tween.tween_property(loading_spinner, "modulate:a", 0.3, 0.6).from(1.0)
+	spinner_tween.tween_property(loading_spinner, "modulate:a", 1.0, 0.6).from(0.3)
+
+	# Create timer for dot pattern rotation (more efficient than while loop)
+	if not pattern_timer:
+		pattern_timer = Timer.new()
+		pattern_timer.wait_time = 0.3
+		pattern_timer.timeout.connect(_on_pattern_timer_timeout)
+		add_child(pattern_timer)
+
+	current_pattern_index = 0
+	pattern_timer.start()
+
+func _on_pattern_timer_timeout() -> void:
+	var loading_spinner = $VBoxContainer/Body/VBoxContainer/ChatHeader/LoadingContainer/LoadingSpinner
+	if not loading_spinner or not is_loading:
 		return
-	
-	edit_model.clear()
-	var model_names: Array = models.map(func(model): return model.get("name", ""))
-	for model_name in model_names:
-		edit_model.add_item(model_name)
-	
-	if not model_names.is_empty():
-		edit_model.selected = 0
-		model = model_names[0]  # Set the first model as default
-		edit_model.disabled = false
+
+	loading_spinner.text = LOADING_DOT_PATTERNS[current_pattern_index]
+	current_pattern_index = (current_pattern_index + 1) % LOADING_DOT_PATTERNS.size()
+
+func _show_connect_button() -> void:
+	var connect_button = $VBoxContainer/Body/VBoxContainer/ChatHeader/ConnectButton
+	var retry_button = $VBoxContainer/Body/VBoxContainer/ChatHeader/RetryButton
+	if connect_button:
+		connect_button.show()
+	if retry_button:
 		retry_button.hide()
-	else:
-		display_error_message("No valid model found.")
-		_show_retry_button()
 
-func handle_chat_completion_response(response: Dictionary) -> void:
-	if response.has("choices") and response["choices"] is Array and not response["choices"].is_empty():
-		var message: String = response["choices"][0]["message"]["content"]
-		conversation.append({"role": edit_model.get_item_text(edit_model.selected), "content": message})
-		display_model_message(message)
+func _hide_connect_button() -> void:
+	var connect_button = $VBoxContainer/Body/VBoxContainer/ChatHeader/ConnectButton
+	if connect_button:
+		connect_button.hide()
 
-		# Force UI update
-		await get_tree().process_frame
-		ensure_scrolled_to_bottom()
-	else:
-		display_error_message("Unexpected chat completion response format. Response: %s" % JSON.stringify(response))
+func _show_retry_button() -> void:
+	var connect_button = $VBoxContainer/Body/VBoxContainer/ChatHeader/ConnectButton
+	var retry_button = $VBoxContainer/Body/VBoxContainer/ChatHeader/RetryButton
+	if connect_button:
+		connect_button.hide()
+	if retry_button:
+		retry_button.show()
 
-func display_user_message(message: String) -> void:
-	append_message_to_display("User", message, "white")
-	ensure_scrolled_to_bottom()
+func _hide_retry_button() -> void:
+	var retry_button = $VBoxContainer/Body/VBoxContainer/ChatHeader/RetryButton
+	if retry_button:
+		retry_button.hide()
 
-func display_model_message(message: String) -> void:
-	var model_name = edit_model.get_item_text(edit_model.selected)
-	append_message_to_display(model_name.capitalize(), message, "#b6f7eb")
-	ensure_scrolled_to_bottom()
-
-func append_message_to_display(role: String, content: String, color: String) -> void:
-	if not is_instance_valid(model_answer):
-		push_error("Model answer is missing.")
-		return
-
-	var formatted_content: String = format_code_blocks(content)
-	model_answer.append_text("[color=%s][b][bgcolor=black]%s:[/bgcolor][/b][/color]\n[p]%s[/p]\n\n" % [color, role, formatted_content])
-
-func ensure_scrolled_to_bottom() -> void:
-	await get_tree().process_frame
-	await get_tree().process_frame
-	model_answer.scroll_to_line(model_answer.get_line_count() - 1)
-
-func display_error_message(error_message: String) -> void:
-	push_error("Error: " + error_message)
-	if is_instance_valid(model_answer):
-		model_answer.append_text("[color=#FF7B7B]⚠️ %s[/color]\n\n" % error_message)
-	ensure_scrolled_to_bottom()
-
-func format_code_blocks(text: String) -> String:
-	var regex := RegEx.new()
-	regex.compile("(?:```)(\\w*)\\n?([\\s\\S]*?)(?:\\n?```)")
-	
-	var formatted_text := text
-	
-	for match in regex.search_all(text):
-		var code_block := match.get_string(2)
-		var formatted_block := "\n[code][b][color=#b6f7eb]%s[/color][/b][/code]\n" % code_block
-		formatted_text = formatted_text.replace(match.get_string(), formatted_block)
-	
-	return formatted_text
-
-func reset_conversation() -> void:
-	conversation.clear()
-	if is_instance_valid(model_answer):
-		model_answer.clear()
-	else:
-		push_error("Model answer is missing.")
+func _show_api_key_saved_message() -> void:
+	var chat_display = $VBoxContainer/Body/VBoxContainer/ModelAnswer
+	if chat_display:
+		MessageFormatter.append_success(chat_display, "✓ API key saved to .env (base64 encoded)")

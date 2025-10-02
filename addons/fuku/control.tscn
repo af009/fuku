@@ -1,37 +1,66 @@
-[gd_scene load_steps=7 format=3 uid="uid://bfluygdkrflia"]
+[gd_scene load_steps=10 format=3 uid="uid://bfluygdkrflia"]
 
-[ext_resource type="Script" path="res://addons/fuku/control.gd" id="1_py5ir"]
-[ext_resource type="FontFile" uid="uid://cmqnl5ac84yys" path="res://addons/fuku/NunitoSans_10pt-Medium.ttf" id="2_vi6yl"]
-[ext_resource type="FontFile" uid="uid://bvmtrd7knehi1" path="res://addons/fuku/NunitoSans_10pt-Black.ttf" id="3_7vv5j"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_retry"]
-bg_color = Color(0.972549, 0.972549, 0.972549, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qsuog"]
-bg_color = Color(1, 1, 1, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-shadow_color = Color(0, 0, 0, 1)
+[ext_resource type="Script" uid="uid://kli5hsvyxscd" path="res://addons/fuku/control.gd" id="1_py5ir"]
+[ext_resource type="FontFile" uid="uid://crssti8tw2ucj" path="res://addons/fuku/JetBrainsMono-Medium.ttf" id="2_vi6yl"]
+[ext_resource type="FontFile" uid="uid://bqyjkmo5taqr4" path="res://addons/fuku/JetBrainsMono-ExtraBold.ttf" id="3_7vv5j"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l0xa7"]
-bg_color = Color(0.0823529, 0.835294, 0.6, 1)
-border_width_left = 15
-border_width_right = 15
-border_color = Color(0.0823529, 0.835294, 0.6, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
+bg_color = Color(0.26, 0.55, 0.78, 1)
+border_width_left = 12
+border_width_right = 12
+border_color = Color(0.26, 0.55, 0.78, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_retry"]
+bg_color = Color(0.24, 0.26, 0.3, 1)
+border_width_left = 12
+border_width_right = 12
+border_color = Color(0.24, 0.26, 0.3, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_clear_hover"]
+bg_color = Color(0.85, 0.3, 0.3, 1)
+border_width_left = 12
+border_width_right = 12
+border_color = Color(0.85, 0.3, 0.3, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="DPITexture" id="DPITexture_j2y2b"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#e0e0e0\" d=\"m5 1v1h-4v2h14v-2h-4v-1zm-3 4v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-8zm1 2h2v6h-2zm4 0h2v6h-2zm4 0h2v6h-2z\"/></svg>
+"
+color_map = {
+Color(1, 0.37254903, 0.37254903, 1): Color(1, 0.47, 0.42, 1),
+Color(0.37254903, 1, 0.5921569, 1): Color(0.45, 0.95, 0.5, 1),
+Color(1, 0.8666667, 0.39607844, 1): Color(1, 0.87, 0.4, 1)
+}
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_send_hover"]
+bg_color = Color(0.3, 0.75, 0.5, 1)
+border_width_left = 12
+border_width_right = 12
+border_color = Color(0.3, 0.75, 0.5, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="DPITexture" id="DPITexture_vrwuw"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#e0e0e0\" d=\"M4 12a1 1 0 0 0 1.555.832l6-4a1 1 0 0 0 0-1.664l-6-4A1 1 0 0 0 4 4z\"/></svg>
+"
+color_map = {
+Color(1, 0.37254903, 0.37254903, 1): Color(1, 0.47, 0.42, 1),
+Color(0.37254903, 1, 0.5921569, 1): Color(0.45, 0.95, 0.5, 1),
+Color(1, 0.8666667, 0.39607844, 1): Color(1, 0.87, 0.4, 1)
+}
 
 [node name="Fuku" type="Control"]
 layout_mode = 3
@@ -59,84 +88,144 @@ alignment = 0
 [node name="Header" type="PanelContainer" parent="VBoxContainer"]
 layout_mode = 2
 
-[node name="HBoxContainer" type="VBoxContainer" parent="VBoxContainer/Header"]
-layout_mode = 2
-
-[node name="HSplitContainer" type="HSplitContainer" parent="VBoxContainer/Header/HBoxContainer"]
+[node name="HBoxContainer" type="GridContainer" parent="VBoxContainer/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+size_flags_vertical = 0
+columns = 2
 
-[node name="CurrentModel" type="Label" parent="VBoxContainer/Header/HBoxContainer/HSplitContainer"]
+[node name="ProviderLabel" type="Label" parent="VBoxContainer/Header/HBoxContainer"]
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_7vv5j")
-text = "Model:   "
-horizontal_alignment = 1
+text = "Provider:"
 vertical_alignment = 1
 
-[node name="EditModel" type="OptionButton" parent="VBoxContainer/Header/HBoxContainer/HSplitContainer"]
+[node name="ProviderOption" type="OptionButton" parent="VBoxContainer/Header/HBoxContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Select AI provider (Ollama, OpenAI, Claude, Docker, or Gemini)"
+theme_override_fonts/font = ExtResource("2_vi6yl")
+selected = 0
+item_count = 5
+popup/item_0/text = "Ollama"
+popup/item_0/id = 0
+popup/item_1/text = "OpenAI"
+popup/item_1/id = 1
+popup/item_2/text = "Claude"
+popup/item_2/id = 2
+popup/item_3/text = "Docker Model Runner"
+popup/item_3/id = 3
+popup/item_4/text = "Google Gemini"
+popup/item_4/id = 4
+
+[node name="APIKeyLabel" type="Label" parent="VBoxContainer/Header/HBoxContainer"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_7vv5j")
+text = "API Key:"
+vertical_alignment = 1
+
+[node name="APIKeyContainer" type="HBoxContainer" parent="VBoxContainer/Header/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="APIKeyInput" type="LineEdit" parent="VBoxContainer/Header/HBoxContainer/APIKeyContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Enter API key for selected provider"
+theme_override_fonts/font = ExtResource("2_vi6yl")
+placeholder_text = "No API key needed"
+secret = true
+
+[node name="SaveKeyCheckbox" type="CheckBox" parent="VBoxContainer/Header/HBoxContainer/APIKeyContainer"]
+layout_mode = 2
+tooltip_text = "Save API key to .env file (base64 encoded). You are responsible for the security of stored keys."
+theme_override_fonts/font = ExtResource("2_vi6yl")
+text = "Save"
+
+[node name="CurrentModel" type="Label" parent="VBoxContainer/Header/HBoxContainer"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_7vv5j")
+text = "Model:"
+vertical_alignment = 1
+
+[node name="EditModel" type="OptionButton" parent="VBoxContainer/Header/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Choose AI model for chat"
 theme_override_fonts/font = ExtResource("2_vi6yl")
 disabled = true
 selected = 0
 item_count = 1
-popup/item_0/text = "Fetching models..."
+popup/item_0/text = "Click Connect to fetch models"
+popup/item_0/id = 0
 
-[node name="HSplitContainer2" type="HSplitContainer" parent="VBoxContainer/Header/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="CurrentContent" type="Label" parent="VBoxContainer/Header/HBoxContainer/HSplitContainer2"]
+[node name="CurrentContent" type="Label" parent="VBoxContainer/Header/HBoxContainer"]
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_7vv5j")
 text = "Content:"
-horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="EditContent" type="LineEdit" parent="VBoxContainer/Header/HBoxContainer/HSplitContainer2"]
+[node name="EditContent" type="TextEdit" parent="VBoxContainer/Header/HBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "System instructions for the AI"
 theme_override_fonts/font = ExtResource("2_vi6yl")
 text = "
-You are an expert GDScript developer and Godot 4.3 specialist. Provide precise and concise responses that follow these guidelines:
+You are an expert GDScript developer and Godot 4.5 specialist. Provide precise and concise responses that follow these guidelines:
 
 1. Best Practices:
-   - Use Godot's built-in features and patterns.
-   - Follow the GDScript style guide (PascalCase for classes, snake_case for functions/variables).
-   - Prefer typed variables and functions for clarity and performance.
+	- Use Godot 4.5's new features like shader baker, stencil buffer support, and accessibility improvements
+	- Follow the GDScript style guide (PascalCase for classes, snake_case for functions/variables)
+	- Prefer typed variables and functions for clarity and performance
+	- Utilize Godot 4.5's improved HiDPI rendering and foldable containers
 
 2. Performance:
-   - Recommend efficient algorithms and data structures.
-   - Use signals over polling, and limit _physics_process to when it's necessary.
-   - Suggest optimizations, especially for mobile platforms.
+	- Recommend efficient algorithms and leverage Godot 4.5's performance improvements
+	- Use chunked tilemap physics for large 2D maps
+	- Suggest pre-compiled shaders with the new shader baker
+	- Use signals over polling, limit _physics_process usage
 
 3. Code Formatting:
-   - Format with tabs and limit line length to 100 characters.
-   - Use descriptive variable and function names.
+	- Format with tabs and limit line length to 100 characters
+	- Use descriptive variable and function names
 
-4. Godot 4.3 Features:
-   - Suggest relevant nodes, scene structures, and new features in Godot 4.3.
-   - Favor Godot's built-in methods over custom solutions.
+4. Godot 4.5 Features:
+	- Suggest relevant nodes, scene structures, and new accessibility features
+	- Recommend stencil buffer techniques for advanced rendering
+	- Use AccessKit integration for screen reader support
+	- Favor Godot's built-in methods over custom solutions
 
 5. Error Handling and Debugging:
-   - Include error checking and recommend Godot-specific debugging methods.
+	- Include error checking and recommend Godot 4.5's improved debugging tools
+	- Use script backtracing with custom loggers
 
-6. Scalability and Maintainability:
-   - Offer scalable solutions, encourage modular design, and separation of concerns.
+6. Accessibility:
+	- Consider screen reader compatibility and accessible UI design
+	- Use proper contrast ratios and clear visual hierarchy
 
-7. Documentation:
-   - Use brief comments for complex logic and recommend Godot's documentation tools (e.g., ##).
-
-Relate responses to Godot's implementation and provide code examples ready for use in the script editor.
+Relate responses to Godot 4.5's implementation and provide ready-to-use code examples.
 "
 
-[node name="RetryButton" type="Button" parent="VBoxContainer/Header/HBoxContainer"]
+[node name="ButtonContainer" type="HBoxContainer" parent="VBoxContainer/Header/HBoxContainer"]
+layout_mode = 2
+
+[node name="LoadEnvButton" type="Button" parent="VBoxContainer/Header/HBoxContainer/ButtonContainer"]
 visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
-theme_override_fonts/font = ExtResource("2_vi6yl")
-theme_override_styles/normal = SubResource("StyleBoxFlat_retry")
-text = "Retry connecting to Ollama"
+tooltip_text = "Reload API keys from .env file"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_7vv5j")
+theme_override_styles/normal = SubResource("StyleBoxFlat_l0xa7")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_l0xa7")
+theme_override_styles/hover = SubResource("StyleBoxFlat_l0xa7")
+text = "📁 Load .env"
 
 [node name="Body" type="PanelContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -145,15 +234,69 @@ size_flags_vertical = 3
 [node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Body"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/Body/VBoxContainer"]
+[node name="ChatHeader" type="HBoxContainer" parent="VBoxContainer/Body/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/Body/VBoxContainer/ChatHeader"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_7vv5j")
 text = "Chat:"
+
+[node name="LoadingContainer" type="HBoxContainer" parent="VBoxContainer/Body/VBoxContainer/ChatHeader"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 10
+
+[node name="LoadingSpinner" type="Label" parent="VBoxContainer/Body/VBoxContainer/ChatHeader/LoadingContainer"]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.0823529, 0.835294, 0.6, 1)
+theme_override_fonts/font = ExtResource("2_vi6yl")
+theme_override_font_sizes/font_size = 16
+text = "●"
+horizontal_alignment = 1
+
+[node name="LoadingText" type="Label" parent="VBoxContainer/Body/VBoxContainer/ChatHeader/LoadingContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65098, 0.678431, 0.784314, 1)
+theme_override_fonts/font = ExtResource("2_vi6yl")
+text = "Thinking..."
+
+[node name="ConnectButton" type="Button" parent="VBoxContainer/Body/VBoxContainer/ChatHeader"]
+layout_mode = 2
+size_flags_horizontal = 10
+tooltip_text = "Connect to the selected provider"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_vi6yl")
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_l0xa7")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_l0xa7")
+theme_override_styles/hover = SubResource("StyleBoxFlat_l0xa7")
+text = "🔌 Connect"
+
+[node name="RetryButton" type="Button" parent="VBoxContainer/Body/VBoxContainer/ChatHeader"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 10
+tooltip_text = "Retry connection to provider"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_vi6yl")
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_l0xa7")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_l0xa7")
+theme_override_styles/hover = SubResource("StyleBoxFlat_l0xa7")
+text = "🔄 Retry"
 
 [node name="ModelAnswer" type="RichTextLabel" parent="VBoxContainer/Body/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 focus_mode = 2
+theme_override_colors/default_color = Color(0.8039216, 0.8392157, 0.95686275, 1)
+theme_override_colors/selection_color = Color(0.45490196, 0.7529412, 0.9882353, 1)
 theme_override_fonts/normal_font = ExtResource("2_vi6yl")
 theme_override_fonts/bold_font = ExtResource("3_7vv5j")
 bbcode_enabled = true
@@ -170,15 +313,41 @@ layout_mode = 2
 [node name="Prompt" type="LineEdit" parent="VBoxContainer/Footer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Type your message here"
+focus_neighbor_right = NodePath("/root/@EditorNode@20446/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@62/@VBoxContainer@63/@EditorMainScreen@103/MainScreen/@CanvasItemEditor@10880/@VSplitContainer@10525/@HSplitContainer@10527/@HSplitContainer@10529/@Control@10530/@SubViewportContainer@10531/@SubViewport@10532/Fuku/VBoxContainer/Footer/HBoxContainer/AskButton")
 theme_override_fonts/font = ExtResource("2_vi6yl")
 placeholder_text = "Ask something here..."
 
+[node name="ClearChatButton" type="Button" parent="VBoxContainer/Footer/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Clear chat history"
+theme_override_colors/font_color = Color(0.7, 0.72, 0.78, 1)
+theme_override_colors/font_pressed_color = Color(0.6, 0.62, 0.68, 1)
+theme_override_colors/font_hover_color = Color(0.85, 0.87, 0.91, 1)
+theme_override_colors/icon_normal_color = Color(0.7, 0.72, 0.78, 1)
+theme_override_colors/icon_pressed_color = Color(0.6, 0.62, 0.68, 1)
+theme_override_colors/icon_hover_color = Color(0.85, 0.87, 0.91, 1)
+theme_override_constants/icon_max_width = 20
+theme_override_fonts/font = ExtResource("3_7vv5j")
+theme_override_styles/normal = SubResource("StyleBoxFlat_retry")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_retry")
+theme_override_styles/hover = SubResource("StyleBoxFlat_clear_hover")
+icon = SubResource("DPITexture_j2y2b")
+icon_alignment = 1
+
 [node name="AskButton" type="Button" parent="VBoxContainer/Footer/HBoxContainer"]
 layout_mode = 2
-size_flags_horizontal = 9
-theme_override_colors/font_hover_color = Color(0.0823529, 0.835294, 0.6, 1)
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+tooltip_text = "Send message to AI"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 20
 theme_override_fonts/font = ExtResource("3_7vv5j")
-theme_override_styles/hover = SubResource("StyleBoxFlat_qsuog")
 theme_override_styles/normal = SubResource("StyleBoxFlat_l0xa7")
-text = "Go!"
+theme_override_styles/pressed = SubResource("StyleBoxFlat_l0xa7")
+theme_override_styles/hover = SubResource("StyleBoxFlat_send_hover")
+icon = SubResource("DPITexture_vrwuw")
+icon_alignment = 1

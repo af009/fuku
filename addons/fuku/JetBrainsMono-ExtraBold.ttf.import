@@ -2,26 +2,29 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://bvmtrd7knehi1"
-path="res://.godot/imported/NunitoSans_10pt-Black.ttf-210c6defdfe4a75c20a4e386ba4455c4.fontdata"
+uid="uid://bqyjkmo5taqr4"
+path="res://.godot/imported/JetBrainsMono-ExtraBold.ttf-924649c1cb7e0fb1c1793bd53f941716.fontdata"
 
 [deps]
 
-source_file="res://addons/fuku/NunitoSans_10pt-Black.ttf"
-dest_files=["res://.godot/imported/NunitoSans_10pt-Black.ttf-210c6defdfe4a75c20a4e386ba4455c4.fontdata"]
+source_file="res://addons/fuku/JetBrainsMono-ExtraBold.ttf"
+dest_files=["res://.godot/imported/JetBrainsMono-ExtraBold.ttf-924649c1cb7e0fb1c1793bd53f941716.fontdata"]
 
 [params]
 
 Rendering=null
 antialiasing=1
 generate_mipmaps=false
+disable_embedded_bitmaps=true
 multichannel_signed_distance_field=false
 msdf_pixel_range=8
 msdf_size=48
 allow_system_fallback=true
 force_autohinter=false
+modulate_color_glyphs=false
 hinting=1
-subpixel_positioning=1
+subpixel_positioning=4
+keep_rounding_remainders=true
 oversampling=0.0
 Fallbacks=null
 fallbacks=[]

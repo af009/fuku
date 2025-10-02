@@ -36,6 +36,10 @@ Thumbs.db
 # Visual Studio Code user settings
 .vscode/
 
+# Ignore all .env files everywhere
+.env
+**/.env
+
 # CLion/IntelliJ project files
 *.iml
 *.idea

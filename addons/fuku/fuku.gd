@@ -6,19 +6,16 @@ var added_to_bottom: bool = false #Tracks where the dock was added (Don't touch)
 
 # ----------------USE_BOTTOM_PANEL------------------------
 # Set to true to move the tab to the bottom panel:
-
-# const USE_BOTTOM_PANEL: bool = true
-const USE_BOTTOM_PANEL: bool = false
-
 # Restart plugin to apply changes!
+@export var use_bottom_panel: bool = false
 # --------------------------------------------------------
 
 func _enter_tree() -> void:
-	_cleanup()  
-	
+	_cleanup()
+
 	dock = preload("res://addons/fuku/control.tscn").instantiate()
 
-	if USE_BOTTOM_PANEL:
+	if use_bottom_panel:
 		add_control_to_bottom_panel(dock, "Fuku")
 		added_to_bottom = true
 	else:
